@@ -51,25 +51,25 @@ WHERE true;
 
 --------------
 
+DECLARE from_days_ago INT64 DEFAULT 10;
+DECLARE to_days_ago INT64 DEFAULT 1;
 DECLARE i INT64 DEFAULT 0;
-DECLARE DATES ARRAY<DATE>;
-DECLARE event_date STRING;
-declare query STRING;
+DECLARE TABLES ARRAY<STRING>;
+DECLARE query STRING;
   
-SET DATES = GENERATE_DATE_ARRAY(DATE(2022,1,22), DATE(2022, 08, 21), INTERVAL 1 DAY);
+SET TABLES = (SELECT array_agg(table_id) FROM `<project>.<dataset>.__TABLES__` WHERE table_id like 'ga_sessions%'
+  and regexp_extract(table_id, r'\d{8}$') between FORMAT_DATE('%Y%m%d',DATE_SUB(CURRENT_DATE(), INTERVAL from_days_ago DAY)) and FORMAT_DATE('%Y%m%d',DATE_SUB(CURRENT_DATE(), INTERVAL to_days_ago DAY)));
 
 LOOP
     SET i = i + 1;  
 
-    IF i > ARRAY_LENGTH(DATES) THEN 
+    IF i > ARRAY_LENGTH(TABLES) THEN 
       LEAVE; 
     END IF;
 
-    SET event_date = FORMAT_DA('%Y%m%d',DATES[ORDINAL(i)]);
-
-    SET query = 'update `roig-global-web.181797792.ga_sessions_' || event_date || '` set hits = (select array_agg(t) from ( select hit.* replace( struct( case when hit.sourcePropertyInfo.sourcePropertyDisplayName= "Israel- Web (2)" then "Israel - Web" when hit.sourcePropertyInfo.sourcePropertyDisplayName= "Mexico -Web" then "Mexico - Web" else hit.sourcePropertyInfo.sourcePropertyDisplayName end as sourcePropertyDisplayName, hit.sourcePropertyInfo.sourcePropertyTrackingId ) as sourcePropertyInfo ) from unnest(hits) as hit ) as t ) where true';
+    SET query = 'update `<project>.<dataset>.' || TABLES[ORDINAL(i)] || '` set hits = (select array_agg(t) from ( select hit.* replace( struct( case when hit.sourcePropertyInfo.sourcePropertyDisplayName= "some value" then "some other value" else hit.sourcePropertyInfo.sourcePropertyDisplayName end as sourcePropertyDisplayName, hit.sourcePropertyInfo.sourcePropertyTrackingId ) as sourcePropertyInfo ) from unnest(hits) as hit ) as t ) where true';
 
     execute immediate query;
-    select event_date || ' complete';
+    select TABLES[ORDINAL(i)] || ' complete';
   
 END LOOP;
