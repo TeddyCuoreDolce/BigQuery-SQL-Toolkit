@@ -1,0 +1,13 @@
+#Functions definition
+
+CREATE OR REPLACE FUNCTION `proj.dataset.firebase_ep_unnest_str`(k STRING, arr ARRAY<STRUCT<key STRING, value STRUCT<string_value STRING, int_value INT64, float_value FLOAT64, double_value FLOAT64>>>) AS (
+(
+  SELECT x.value.string_value FROM UNNEST(arr) x WHERE x.key=k)
+);
+
+CREATE OR REPLACE FUNCTION `proj.dataset.firebase_ep_unnest_int`(k STRING, arr ARRAY<STRUCT<key STRING, value STRUCT<string_value STRING, int_value INT64, float_value FLOAT64, double_value FLOAT64>>>) AS (
+(
+  SELECT
+    COALESCE(CAST(x.value.int_value AS NUMERIC), CAST(x.value.float_value AS NUMERIC), CAST(x.value.double_value AS NUMERIC), CAST(x.value.string_value AS NUMERIC))
+    FROM UNNEST(arr) x WHERE x.key=k)
+);
