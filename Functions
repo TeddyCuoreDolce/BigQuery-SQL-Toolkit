@@ -11,3 +11,7 @@ CREATE OR REPLACE FUNCTION `proj.dataset.firebase_ep_unnest_int`(k STRING, arr A
     COALESCE(CAST(x.value.int_value AS NUMERIC), CAST(x.value.float_value AS NUMERIC), CAST(x.value.double_value AS NUMERIC), CAST(x.value.string_value AS NUMERIC))
     FROM UNNEST(arr) x WHERE x.key=k)
 );
+
+#Invoke functions
+
+SELECT `proj.dataset.firebase_ep_unnest_int`(k, arr);
