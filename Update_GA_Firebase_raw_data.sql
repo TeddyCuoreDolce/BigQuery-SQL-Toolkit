@@ -20,7 +20,7 @@ LOOP
       LEAVE; 
     END IF;
 
-    SET event_date = FORMAT_DA('%Y%m%d',DATES[ORDINAL(i)]);
+    SET event_date = FORMAT_DATE('%Y%m%d',DATES[ORDINAL(i)]);
 
     execute immediate 'update table set field="value" where true';
   
